@@ -153,6 +153,7 @@ class __LoginViewState extends State<LoginView> {
                             final result = await _authProdiver.login(
                                 email: email, password: password);
                             if (result != AuthException) {
+                                context.read<AuthBloc>().add(AuthEventLogIn(email, password));
                               ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text("Login Successful")),
                               );

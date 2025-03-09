@@ -19,6 +19,7 @@ class _HomeViewState extends State<HomeView> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final DEFAULT_STATUS = 'pending';
   Category? _selectedCategory;
 
   late final CrudService _crudService = CrudService(SupabaseService().client);
@@ -50,6 +51,9 @@ class _HomeViewState extends State<HomeView> {
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: BlocBuilder<AuthBloc, auth.AuthState>(
           builder: (context, state) {
+            if (state is auth.AuthStateLoggedIn) {
+              return const SizedBox.shrink();
+            } else {
             return AppBar(
               title: const Text(
                 'Incident Report',
@@ -81,6 +85,7 @@ class _HomeViewState extends State<HomeView> {
                 )
               ],
             );
+            }
           },
         ),
       ),
@@ -257,6 +262,7 @@ class _HomeViewState extends State<HomeView> {
                         'incident_type': category,
                         'location': location,
                         'description': description,
+                        'status': DEFAULT_STATUS,
                       };
 
                       try {

@@ -98,29 +98,33 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                                 ListTile(
                                   contentPadding:
                                       const EdgeInsets.only(right: 86),
+                                  title: const Text("View All Incidents"),
+                                  trailing:
+                                      const Icon(Icons.arrow_forward, size: 18),
+                                  onTap: () {
+                                    context.read<NavigationBloc>().add(ChangePageEvent(1));
+                                    // Navigator.pushNamed(context, '/view-incidents');
+                                  },
+                                  tileColor: Colors.transparent,
+                                  selectedTileColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                ),
+                                
+                                ListTile(
+                                  contentPadding:
+                                      const EdgeInsets.only(right: 86),
                                   title: const Text("Report New Incident"),
                                   trailing:
                                       const Icon(Icons.arrow_forward, size: 18),
                                   onTap: () {
+                                    context.read<NavigationBloc>().add(ChangePageEvent(2));
+
                                     // Navigator.pushNamed(context, '/report-incident');
                                   },
                                   tileColor: Colors.transparent,
                                   selectedTileColor: Colors.transparent,
                                   hoverColor: Colors.transparent,
                                   splashColor: Colors.transparent,
-                                ),
-                                ListTile(
-                                  contentPadding:
-                                      const EdgeInsets.only(right: 86),
-                                  title: const Text("View All Incidents"),
-                                  trailing:
-                                      const Icon(Icons.arrow_forward, size: 18),
-                                  onTap: () {
-                                    // Navigator.pushNamed(context, '/view-incidents');
-                                  },
-                                  tileColor: Colors.transparent,
-                                  selectedTileColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
                                 ),
                                 ListTile(
                                   contentPadding:

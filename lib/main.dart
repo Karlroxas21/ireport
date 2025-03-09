@@ -47,6 +47,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginView(),
           '/admin-home': (context) => const AdminHomeView(),
           '/home': (context) => const HomeView(),
+          '/incident-view': (context) => const IncidentView(),
           // Add other routes here
         },
       ),
