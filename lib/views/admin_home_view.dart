@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ireport/enums/menu_action.dart';
+import 'package:ireport/services/auth/supabase.dart';
 import 'package:ireport/services/bloc/auth_bloc.dart';
 import 'package:ireport/services/bloc/navigation_bloc.dart';
+import 'package:ireport/services/crud.dart';
 import 'package:ireport/views/admin_dashboard_view.dart';
 import 'package:ireport/views/home.dart';
 import 'package:ireport/views/incident_view.dart';
@@ -19,12 +21,20 @@ class AdminHomeView extends StatefulWidget {
 class _AdminHomeViewState extends State<AdminHomeView> {
   final List<String> _titles = ['Home', 'Dashboard', 'Report'];
 
+  late final CrudService _crudService = CrudService(SupabaseService().client);
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => NavigationBloc(),
-      child: BlocBuilder<NavigationBloc, NavigationState>(
-        builder: (context, state) {
+        create: (context) => NavigationBloc(),
+        child: BlocBuilder<NavigationBloc, NavigationState>(
+            builder: (context, state) {
           return Scaffold(
             appBar: AppBar(
               title: Text(
@@ -102,14 +112,15 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                                   trailing:
                                       const Icon(Icons.arrow_forward, size: 18),
                                   onTap: () {
-                                    context.read<NavigationBloc>().add(ChangePageEvent(1));
+                                    context
+                                        .read<NavigationBloc>()
+                                        .add(ChangePageEvent(1));
                                     // Navigator.pushNamed(context, '/view-incidents');
                                   },
                                   tileColor: Colors.transparent,
                                   selectedTileColor: Colors.transparent,
                                   hoverColor: Colors.transparent,
                                 ),
-                                
                                 ListTile(
                                   contentPadding:
                                       const EdgeInsets.only(right: 86),
@@ -117,7 +128,9 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                                   trailing:
                                       const Icon(Icons.arrow_forward, size: 18),
                                   onTap: () {
-                                    context.read<NavigationBloc>().add(ChangePageEvent(2));
+                                    context
+                                        .read<NavigationBloc>()
+                                        .add(ChangePageEvent(2));
 
                                     // Navigator.pushNamed(context, '/report-incident');
                                   },
@@ -150,114 +163,194 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                                 fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           Container(
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                border:
-                                    Border.all(color: Colors.grey, width: 1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Pending Status
-                                  Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.grey, width: 1),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(Icons.pending,
-                                            color: Colors.orange),
-                                        SizedBox(width: 8),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey, width: 1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: StreamBuilder<List<String>>(
+                              stream: _crudService.getReportStatuses(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                      child: CircularProgressIndicator());
+                                } else if (snapshot.hasError) {
+                                  return Center(
+                                      child: Text('Error: ${snapshot.error}'));
+                                } else if (!snapshot.hasData ||
+                                    snapshot.data!.isEmpty) {
+                                  return const Center(
+                                      child: Text('No data available'));
+                                } else {
+                                  final statuses = snapshot.data!;
+                                  final inProgressCount = statuses
+                                      .where(
+                                          (status) => status == 'in-progress')
+                                      .length;
+                                  final pendingCount = statuses
+                                      .where((status) => status == 'pending')
+                                      .length;
+                                  final criticalCount = statuses
+                                      .where((status) => status == 'critical')
+                                      .length;
+                                  final resolvedCount = statuses
+                                      .where((status) => status == 'resolved')
+                                      .length;
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // In-progress
+                                      Container(
+                                        padding: const EdgeInsets.all(8.0),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.grey, width: 1),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
                                           children: [
-                                            Text(
-                                              "Pending",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16),
-                                            ),
-                                            Text(
-                                              "123",
-                                              style: TextStyle(fontSize: 14),
+                                            const Icon(Icons.autorenew,
+                                                color: Colors.blue),
+                                            const SizedBox(width: 8),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "In-progress",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16),
+                                                ),
+                                                Text(
+                                                  "$inProgressCount",
+                                                  style: const TextStyle(
+                                                      fontSize: 14),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Critical Status
-                                  Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.grey, width: 1),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(Icons.error, color: Colors.red),
-                                        SizedBox(width: 8),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      // Pending Status
+                                      Container(
+                                        padding: const EdgeInsets.all(8.0),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.grey, width: 1),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
                                           children: [
-                                            Text(
-                                              "Critical",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16),
-                                            ),
-                                            Text(
-                                              "5",
-                                              style: TextStyle(fontSize: 14),
+                                            const Icon(Icons.hourglass_empty,
+                                                color: Colors.orange),
+                                            const SizedBox(width: 8),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "Pending",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16),
+                                                ),
+                                                Text(
+                                                  "$pendingCount",
+                                                  style: const TextStyle(
+                                                      fontSize: 14),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Resolved Status
-                                  Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.grey, width: 1),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(Icons.check_circle,
-                                            color: Colors.green),
-                                        SizedBox(width: 8),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      // Critical Status
+                                      Container(
+                                        padding: const EdgeInsets.all(8.0),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.grey, width: 1),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
                                           children: [
-                                            Text(
-                                              "Resolved",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16),
-                                            ),
-                                            Text(
-                                              "20",
-                                              style: TextStyle(fontSize: 14),
+                                            const Icon(Icons.error,
+                                                color: Colors.red),
+                                            const SizedBox(width: 8),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "Critical",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16),
+                                                ),
+                                                Text(
+                                                  "$criticalCount",
+                                                  style: const TextStyle(
+                                                      fontSize: 14),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              )),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      // Resolved Status
+                                      Container(
+                                        padding: const EdgeInsets.all(8.0),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.grey, width: 1),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.check_circle,
+                                                color: Colors.green),
+                                            const SizedBox(width: 8),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "Resolved",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16),
+                                                ),
+                                                Text(
+                                                  "$resolvedCount",
+                                                  style: const TextStyle(
+                                                      fontSize: 14),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -280,8 +373,6 @@ class _AdminHomeViewState extends State<AdminHomeView> {
               ],
             ),
           );
-        },
-      ),
-    );
+        }));
   }
 }

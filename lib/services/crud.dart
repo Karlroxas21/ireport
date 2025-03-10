@@ -34,7 +34,7 @@ class CrudService {
 
       controller.add(reports
           .where((report) => DateTime.parse(report['created_at'])
-              .isAfter(DateTime.now().subtract(const Duration(days: 1))))
+              .isAfter(DateTime.now().subtract(const Duration(days: 2))))
           .toList());
     }
 
@@ -70,18 +70,32 @@ class CrudService {
     }
   }
 
-  Future<List<String>> getReportStatuses() async {
-    try {
-      final response = await _client.from('reports').select('status');
+  Stream<List<String>> getReportStatuses() {
+    final controller = StreamController<List<String>>.broadcast();
 
-      if (response == null) {
-        throw Exception('Failed to fetch report statuses');
+    void fetchStatuses() async {
+      try {
+        final response = await _client.from('reports').select('status');
+
+        if (response == null) {
+          throw Exception('Failed to fetch report statuses');
+        }
+
+        controller.add(response.map<String>((report) => report['status'] as String).toList());
+      } catch (e) {
+        controller.addError('Exception caught in getReportStatuses: $e');
       }
-
-      return response.map<String>((report) => report['status'] as String).toList();
-    } catch (e) {
-      throw Exception('Exception caught in getReportStatuses: $e');
     }
+
+    // Initial fetch
+    fetchStatuses();
+
+    // Listen to real-time changes
+    final subscription = _client.from('reports').stream(primaryKey: ['id']).listen((snapshot) {
+      fetchStatuses(); // Refetch statuses on insert, update, delete
+    });
+
+    return controller.stream;
   }
 }
 

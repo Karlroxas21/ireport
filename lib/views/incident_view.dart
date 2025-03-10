@@ -59,6 +59,7 @@ class _IncidentViewState extends State<IncidentView> {
       if (newStatus != args['status']) {
         crudService.updateReportStatus(
             args['id'].toString(), newStatus.toLowerCase());
+        
       }
     } catch (e) {
       throw Exception(e);
