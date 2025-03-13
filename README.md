@@ -1,16 +1,21 @@
-# ireport
+## Requirements
+- Flutter installed on yuor machine. See: https://docs.flutter.dev/get-started/install
+- Visual Studio Code
+- Install Flutter plug-in in VSCode. Marketplace -> Search 'Flutter' -> Install
+- Create .env in root directory
+- (Optional) scrcpy, see: https://github.com/Genymobile/scrcpy
 
-A new Flutter project.
+## Environment
+Insert this to your .env
+```
+SUPABASE_URL=SOME_VALUE
+SUPABASE_ANONKEY=SOME_VALUE
+```
 
-## Getting Started
+The value of this is in your Supabase account
 
-This project is a starting point for a Flutter application.
+## Running the application
+1. In your terminal, go to root directory and run ``` flutter pub get ```
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Building APK/iOS
+1. For APK ``` flutter build apk --release ```. APK file will located in build/app/outputs/flutter-apk/app-release.apk.
