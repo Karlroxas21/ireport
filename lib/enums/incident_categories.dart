@@ -8,7 +8,8 @@ enum Category {
   category7('Civil Disturbances'),
   category8('Health Emergencies'),
   category9('Infrastructure Failures'),
-  category10('Armed Incident');
+  category10('Armed Incident'),
+  category11('Others');
 
 
   final String label;

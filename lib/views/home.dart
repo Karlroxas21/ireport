@@ -21,6 +21,8 @@ class _HomeViewState extends State<HomeView> {
   final TextEditingController _descriptionController = TextEditingController();
   final DEFAULT_STATUS = 'pending';
   Category? _selectedCategory;
+  final TextEditingController _otherCategoryController =
+      TextEditingController();
 
   late final CrudService _crudService = CrudService(SupabaseService().client);
   final _formKey = GlobalKey<FormState>();
@@ -54,37 +56,37 @@ class _HomeViewState extends State<HomeView> {
             if (state is auth.AuthStateLoggedIn) {
               return const SizedBox.shrink();
             } else {
-            return AppBar(
-              title: const Text(
-                'Incident Report',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              actions: [
-                PopupMenuButton<MenuAction>(
-                  onSelected: (value) async {
-                    switch (value) {
-                      case MenuAction.login:
-                        Navigator.pushNamed(context, '/login');
-                        break;
-                      case MenuAction.adminDashboard:
-                        // context.read<AuthBloc>().add(const AuthEventLogout());
-                        break;
-                      case MenuAction.adminHome:
-                        // context.read<AuthBloc>().add(const AuthEventLogout());
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) {
-                    return const [
-                      PopupMenuItem<MenuAction>(
-                        value: MenuAction.login,
-                        child: Text('Log In'),
-                      ),
-                    ];
-                  },
-                )
-              ],
-            );
+              return AppBar(
+                title: const Text(
+                  'Incident Report',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                actions: [
+                  PopupMenuButton<MenuAction>(
+                    onSelected: (value) async {
+                      switch (value) {
+                        case MenuAction.login:
+                          Navigator.pushNamed(context, '/login');
+                          break;
+                        case MenuAction.adminDashboard:
+                          // context.read<AuthBloc>().add(const AuthEventLogout());
+                          break;
+                        case MenuAction.adminHome:
+                          // context.read<AuthBloc>().add(const AuthEventLogout());
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) {
+                      return const [
+                        PopupMenuItem<MenuAction>(
+                          value: MenuAction.login,
+                          child: Text('Log In'),
+                        ),
+                      ];
+                    },
+                  )
+                ],
+              );
             }
           },
         ),
@@ -190,6 +192,26 @@ class _HomeViewState extends State<HomeView> {
                         return null;
                       },
                     ),
+                    if (_selectedCategory == Category.category11) ...[
+                      const SizedBox(height: 10),
+                      TextFormField(
+                      controller: _otherCategoryController,
+                      decoration: InputDecoration(
+                        hintText: "Specify the incident type",
+                        border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                          const BorderSide(color: Colors.grey, width: 1),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                        return 'Please specify the incident type';
+                        }
+                        return null;
+                      },
+                      ),
+                    ],
                     const SizedBox(height: 10),
                     const Text(
                       'Location',
@@ -254,7 +276,10 @@ class _HomeViewState extends State<HomeView> {
                       final name = _nameController.text;
                       final location = _locationController.text;
                       final description = _descriptionController.text;
-                      final category = _selectedCategory?.label;
+                      var category = _selectedCategory?.label;
+                      if (_selectedCategory == Category.category11) {
+                        category = _otherCategoryController.text;
+                      }
 
                       final reportData = {
                         'title': title,
@@ -292,11 +317,12 @@ class _HomeViewState extends State<HomeView> {
                               content: Text('Failed to submit report: $e')),
                         );
                       }
-                    }else{
-                       ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Special Characters are not allowed')),
-                          );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text('Special Characters are not allowed')),
+                      );
                     }
                   },
                   child: const Text(
