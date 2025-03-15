@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ireport/services/auth/supabase.dart';
 import 'package:supabase/supabase.dart';
@@ -81,7 +82,9 @@ class CrudService {
           throw Exception('Failed to fetch report statuses');
         }
 
-        controller.add(response.map<String>((report) => report['status'] as String).toList());
+        controller.add(response
+            .map<String>((report) => report['status'] as String)
+            .toList());
       } catch (e) {
         controller.addError('Exception caught in getReportStatuses: $e');
       }
@@ -91,12 +94,42 @@ class CrudService {
     fetchStatuses();
 
     // Listen to real-time changes
-    final subscription = _client.from('reports').stream(primaryKey: ['id']).listen((snapshot) {
+    final subscription =
+        _client.from('reports').stream(primaryKey: ['id']).listen((snapshot) {
       fetchStatuses(); // Refetch statuses on insert, update, delete
     });
 
     return controller.stream;
   }
+
+  Future<bool> uploadFile(File file, String fileName) async {
+    try {
+      final response = await _client.storage.from('ireport').upload(
+          fileName, file,
+          fileOptions: const FileOptions(contentType: 'image/jpeg'));
+
+      if (response == null) {
+        throw Exception('Failed to upload file: $response');
+      }
+
+      return true;
+    } catch (e) {
+      throw Exception('Exception caught in uploadFile: $e');
+    }
+  }
+
+  Future<String> getImageFile(String fileName) async{
+    try {
+      final response = await _client.storage.from('ireport').getPublicUrl(fileName);
+
+      if (response == null) {
+        throw Exception('Failed to download file: $response');
+      }
+
+      return response;
+
+    } catch (e) {
+      throw Exception('Exception caught in downloadFile: $e');
+    }
+  }
 }
-
-
