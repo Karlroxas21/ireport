@@ -139,19 +139,19 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                                   hoverColor: Colors.transparent,
                                   splashColor: Colors.transparent,
                                 ),
-                                ListTile(
-                                  contentPadding:
-                                      const EdgeInsets.only(right: 86),
-                                  title: const Text("Extract All Reports"),
-                                  trailing:
-                                      const Icon(Icons.download, size: 18),
-                                  onTap: () {
-                                    // Navigator.pushNamed(context, '/view-incidents');
-                                  },
-                                  tileColor: Colors.transparent,
-                                  selectedTileColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                ),
+                                // ListTile(
+                                //   contentPadding:
+                                //       const EdgeInsets.only(right: 86),
+                                //   title: const Text("Extract All Reports"),
+                                //   trailing:
+                                //       const Icon(Icons.download, size: 18),
+                                //   onTap: () {
+                                //     // Navigator.pushNamed(context, '/view-incidents');
+                                //   },
+                                //   tileColor: Colors.transparent,
+                                //   selectedTileColor: Colors.transparent,
+                                //   hoverColor: Colors.transparent,
+                                // ),
                               ],
                             ),
                           ),

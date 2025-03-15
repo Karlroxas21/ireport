@@ -15,6 +15,7 @@ class _IncidentViewState extends State<IncidentView> {
   late String newStatus;
   late final Map<String, dynamic> args =
       ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+  bool loading = true; // Add loading state
 
   Color _getStatusColor(String status) {
     switch (status.toUpperCase()) {
@@ -235,9 +236,38 @@ class _IncidentViewState extends State<IncidentView> {
                     }
                   },
                   child: args['image_url'] != null
-                      ? Image.network(
-                          args['image_url'],
-                          fit: BoxFit.cover,
+                      ? Stack(
+                          children: [
+                            Image.network(
+                              args['image_url'],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 200,
+                              loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) {
+                                  return child;
+                                } else {
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                          : null,
+                                    ),
+                                  );
+                                }
+                              },
+                              frameBuilder: (BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
+                                if (wasSynchronouslyLoaded || frame != null) {
+                                  loading = false;
+                                  return child;
+                                } else {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                         )
                       : const Center(
                           child: Text(

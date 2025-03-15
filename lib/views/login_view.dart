@@ -20,28 +20,7 @@ class __LoginViewState extends State<LoginView> {
 
   late final _authProdiver = SupabaseAuthProvider();
   final _formKey = GlobalKey<FormState>();
-
-  // void _login() async {
-  //   final email = _emailController.text;
-  //   final password = _passwordController.text;
-  //   try {
-  //     final user = await _authProvider.login(email, password);
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text("Login Successful")),
-  //     );
-
-  //     // Redirect to admin_home_view.dart and set isLoggedIn to true
-  //     Navigator.of(context).pushReplacementNamed('/admin-home');
-  //     // Assuming you have a global state or a provider to set isLoggedIn
-  //     // For example, using a provider:
-  //     // Provider.of<AuthProvider>(context, listen: false).setLoggedIn(true);
-
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text("Login Failed: $e")),
-  //     );
-  //   }
-  // }
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -136,70 +115,80 @@ class __LoginViewState extends State<LoginView> {
                   listener: (context, state) async {},
                   child: Align(
                     alignment: Alignment.center,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.black,
-                        side: const BorderSide(color: Colors.black),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () async {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          final email = _emailController.text;
-                          final password = _passwordController.text;
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.black,
+                              side: const BorderSide(color: Colors.black),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () async {
+                              if (_formKey.currentState?.validate() ?? false) {
+                                setState(() {
+                                  _isLoading = true;
+                                });
+                                final email = _emailController.text;
+                                final password = _passwordController.text;
 
-                          try {
-                            final result = await _authProdiver.login(
-                                email: email, password: password);
-                            if (result != AuthException) {
-                                context.read<AuthBloc>().add(AuthEventLogIn(email, password));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Login Successful")),
-                              );
+                                try {
+                                  final result = await _authProdiver.login(
+                                      email: email, password: password);
+                                  if (result != AuthException) {
+                                    context
+                                        .read<AuthBloc>()
+                                        .add(AuthEventLogIn(email, password));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text("Login Successful")),
+                                    );
 
-                              _emailController.clear();
-                              _passwordController.clear();
+                                    _emailController.clear();
+                                    _passwordController.clear();
 
-                              Navigator.of(context).pushNamedAndRemoveUntil(
-                              '/admin-home',
-                              (Route<dynamic> route) => false,
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Login Failed")),
-                              );
-                            }
-                          } on InvalidCredentialsException {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text("Invalid login credentials")));
-                          } on UserNotFoundAuthException {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text("User not found")));
-                          } on RateLimitExceededException {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text("Limit exceed. Try again later")));
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        "An error occured. Try again later")));
-                          }
-                        }
-                        // context
-                        //     .read<AuthBloc>()
-                        //     .add(AuthEventLogIn(email, password));
-                      },
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ),
+                                    Navigator.of(context)
+                                        .pushNamedAndRemoveUntil(
+                                      '/admin-home',
+                                      (Route<dynamic> route) => false,
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text("Login Failed")),
+                                    );
+                                  }
+                                } on InvalidCredentialsException {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              "Invalid login credentials")));
+                                } on UserNotFoundAuthException {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text("User not found")));
+                                } on RateLimitExceededException {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              "Limit exceed. Try again later")));
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              "An error occured. Try again later")));
+                                } finally {
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                }
+                              }
+                            },
+                            child: const Text(
+                              'Login',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
                   ),
                 ),
               ],
