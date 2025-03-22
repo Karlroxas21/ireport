@@ -28,18 +28,18 @@ The value of this is in your Supabase account
 ## Report Form
 This is the main feature of this application where users and admin can report incidents instantly without any necessary steps.
 
-**Title**: Required (Only accepts alphabet a-z, A-Z)
-**Name**: Optional
-**Incident Type**: Required (Dropdown categories or custom input)
-**Location**: Required
-**Description**: Required (Special characters not allowed)
-**Attach Picture**: Optional (Can take from camera or gallery)
+- **Title**: Required (Only accepts alphabet a-z, A-Z)
+- **Name**: Optional
+- **Incident Type**: Required (Dropdown categories or custom input)
+- **Location**: Required
+- **Description**: Required (Special characters not allowed)
+- **Attach Picture**: Optional (Can take from camera or gallery)
 
 ## Login
 To create a user, go to supabase and auth then click add user. If you have a login automatically you are set as Admin. 
 
-**Username**: Required (Sanitized)
-**Password**: Required (Sanitized)
+- **Username**: Required (Sanitized)
+- **Password**: Required (Sanitized)
 
 ## Admin Home
 Your default view when logged in as Admin. There's quick actions, status overview of all incident reports and bottom navigation.
