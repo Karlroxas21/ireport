@@ -57,6 +57,13 @@ Dashboard has three components:
 ## Report View
 When report is clicked in dashboard, you will be redirected to a View that displays all data of that report. You can update status here.
 
+## Extract reports
+To extract report, go to supabase.
+1. Click Database
+2. Click 'reports' table in left side
+3. In top-left click filter if you want to filter the data
+4. If you are okay then click the checkbox in the left of id column then click 'Export to CSV'
+
 # Docs
 ## System Architecture
 ![System Architecture](./docs/system_architecture.jpg)
