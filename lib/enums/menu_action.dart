@@ -3,5 +3,6 @@ enum MenuAction {
 }
 
 enum MenuLoggedInAction{
-  logout
+  logout,
+  hotlines
 }

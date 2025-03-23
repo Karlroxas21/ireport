@@ -8,6 +8,7 @@ import 'package:ireport/services/bloc/auth_state.dart';
 import 'package:ireport/services/bloc/navigation_bloc.dart';
 import 'package:ireport/views/admin_dashboard_view.dart';
 import 'package:ireport/views/admin_home_view.dart';
+import 'package:ireport/views/admin_hotline.dart';
 import 'package:ireport/views/home.dart';
 
 import 'package:ireport/views/incident_view.dart';
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
           '/admin-home': (context) => const AdminHomeView(),
           '/home': (context) => const HomeView(),
           '/incident-view': (context) => const IncidentView(),
+          '/admin-hotline': (context) => const AdminHotline(),
           // Add other routes here
         },
       ),

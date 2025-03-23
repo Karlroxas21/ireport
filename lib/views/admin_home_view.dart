@@ -6,6 +6,7 @@ import 'package:ireport/services/bloc/auth_bloc.dart';
 import 'package:ireport/services/bloc/navigation_bloc.dart';
 import 'package:ireport/services/crud.dart';
 import 'package:ireport/views/admin_dashboard_view.dart';
+import 'package:ireport/views/admin_hotline.dart';
 import 'package:ireport/views/home.dart';
 import 'package:ireport/views/incident_view.dart';
 
@@ -19,10 +20,9 @@ class AdminHomeView extends StatefulWidget {
 }
 
 class _AdminHomeViewState extends State<AdminHomeView> {
-  final List<String> _titles = ['Home', 'Dashboard', 'Report'];
+  final List<String> _titles = ['Home', 'Dashboard', 'Report', 'Hotlines'];
 
   late final CrudService _crudService = CrudService(SupabaseService().client);
-
 
   @override
   void initState() {
@@ -53,10 +53,20 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                           (Route<dynamic> route) => false,
                         );
                         break;
+                      case MenuLoggedInAction.hotlines:
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          '/admin-hotline',
+                          (Route<dynamic> route) => false,
+                        );
+                        break;
                     }
                   },
                   itemBuilder: (context) {
                     return const [
+                      PopupMenuItem<MenuLoggedInAction>(
+                        value: MenuLoggedInAction.hotlines,
+                        child: Text('Hotlines'),
+                      ),
                       PopupMenuItem<MenuLoggedInAction>(
                         value: MenuLoggedInAction.logout,
                         child: Text('Log Out'),
@@ -139,19 +149,21 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                                   hoverColor: Colors.transparent,
                                   splashColor: Colors.transparent,
                                 ),
-                                // ListTile(
-                                //   contentPadding:
-                                //       const EdgeInsets.only(right: 86),
-                                //   title: const Text("Extract All Reports"),
-                                //   trailing:
-                                //       const Icon(Icons.download, size: 18),
-                                //   onTap: () {
-                                //     // Navigator.pushNamed(context, '/view-incidents');
-                                //   },
-                                //   tileColor: Colors.transparent,
-                                //   selectedTileColor: Colors.transparent,
-                                //   hoverColor: Colors.transparent,
-                                // ),
+                                ListTile(
+                                  contentPadding:
+                                      const EdgeInsets.only(right: 86),
+                                  title: const Text("Emergency Hotlines"),
+                                  trailing:
+                                      const Icon(Icons.arrow_forward, size: 18),
+                                  onTap: () {
+                                    context
+                                        .read<NavigationBloc>()
+                                        .add(ChangePageEvent(3));
+                                  },
+                                  tileColor: Colors.transparent,
+                                  selectedTileColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                ),
                               ],
                             ),
                           ),
@@ -358,18 +370,24 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                 ),
                 const AdminDashboardView(),
                 const HomeView(),
+                const AdminHotline()
               ],
             ),
             bottomNavigationBar: BottomNavigationBar(
+              fixedColor: Colors.black,
+              unselectedItemColor: Colors.grey,
+              showUnselectedLabels: true,
               currentIndex: context.read<NavigationBloc>().state.selectedIndex,
               onTap: (index) =>
-                  context.read<NavigationBloc>().add(ChangePageEvent(index)),
+                context.read<NavigationBloc>().add(ChangePageEvent(index)),
               items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.dashboard), label: 'Dashboard'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.analytics), label: 'Report'),
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home',),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.dashboard), label: 'Dashboard'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.analytics), label: 'Report'),
+              BottomNavigationBarItem(icon: Icon(Icons.emergency), label: 'Hotlines'),
+          
               ],
             ),
           );
