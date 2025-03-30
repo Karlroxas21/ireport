@@ -42,6 +42,8 @@ dependencies:
   flutter_dotenv: ^5.2.1
   intl: ^0.20.2
   image_picker: ^1.0.0
+  uni_links: ^0.5.1
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -70,10 +72,7 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-     - assets/home/image_clip_1.jpg
-     - assets/home/image_clip_2.jpg
-     - assets/home/image_clip_3.jpg
-     - assets/home/image_clip_4.jpg
+     - assets/solana_logo.png
      - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,9 @@ import 'package:ireport/services/bloc/auth_bloc.dart';
 import 'package:ireport/services/bloc/auth_state.dart' as auth;
 import 'package:ireport/services/crud.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:ireport/views/login_view.dart';
+import 'package:ireport/views/register_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -62,42 +66,84 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson =
+        prefs.getString('user_data'); // Retrieve the stored JSON string
+    if (userJson != null) {
+      final Map<String, dynamic> userMap =
+          jsonDecode(userJson) as Map<String, dynamic>;
+      return userMap['id'] as String?; // Access the 'id' field
+    }
+    return null; // Return null if userJson is not found
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: BlocBuilder<AuthBloc, auth.AuthState>(
-          builder: (context, state) {
-            if (state is auth.AuthStateLoggedIn) {
-              return const SizedBox.shrink();
-            } else {
-              return AppBar(
-                title: const Text(
-                  'Incident Report',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                actions: [
-                  PopupMenuButton<MenuAction>(
-                    onSelected: (value) async {
-                      switch (value) {
-                        case MenuAction.login:
-                          Navigator.pushNamed(context, '/login');
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) {
-                      return const [
-                        PopupMenuItem<MenuAction>(
-                          value: MenuAction.login,
-                          child: Text('Log In'),
-                        ),
-                      ];
-                    },
-                  )
-                ],
-              );
+        child: FutureBuilder<String?>(
+          future: SharedPreferences.getInstance()
+              .then((prefs) => prefs.getString('user_data')),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox.shrink(); // Show nothing while loading
             }
+            if (snapshot.hasData && snapshot.data != null) {
+              return const SizedBox
+                  .shrink(); // Hide the AppBar if metadataString has a value
+            }
+            return BlocBuilder<AuthBloc, auth.AuthState>(
+              builder: (context, state) {
+                if (state is auth.AuthStateLoggedIn) {
+                  return const SizedBox.shrink();
+                } else {
+                  return AppBar(
+                    title: const Text(
+                      'Incident Report',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    actions: [
+                      PopupMenuButton<MenuAction>(
+                        onSelected: (value) async {
+                          switch (value) {
+                            case MenuAction.login:
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginView(),
+                                ),
+                              );
+                              break;
+                            case MenuAction.register:
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterView(),
+                                ),
+                              );
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) {
+                          return const [
+                            PopupMenuItem<MenuAction>(
+                              value: MenuAction.login,
+                              child: Text('Log In'),
+                            ),
+                            PopupMenuItem<MenuAction>(
+                              value: MenuAction.register,
+                              child: Text('Register'),
+                            ),
+                          ];
+                        },
+                      )
+                    ],
+                  );
+                }
+              },
+            );
           },
         ),
       ),
@@ -130,7 +176,7 @@ class _HomeViewState extends State<HomeView> {
                     const Padding(
                       padding: EdgeInsets.only(top: 10.0),
                       child: Text(
-                        'Title',
+                        'Title*',
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -155,23 +201,45 @@ class _HomeViewState extends State<HomeView> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'Name(Optional)',
-                    ),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        hintText: "Enter your name here",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Colors.grey, width: 1),
-                        ),
+                    FutureBuilder<String?>(
+                      future: SharedPreferences.getInstance().then(
+                        (prefs) => prefs.getString('user_metadata'),
                       ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SizedBox
+                              .shrink(); // Show nothing while loading
+                        }
+                        if (snapshot.hasData && snapshot.data != null) {
+                          print('user_metadata: ${snapshot.data}');
+                          return const SizedBox
+                              .shrink(); // Hide the field if metadataString has a value
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Name(Optional)',
+                            ),
+                            TextFormField(
+                              controller: _nameController,
+                              decoration: InputDecoration(
+                                hintText: "Enter your name here",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 1),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      'Incident Type',
+                      'Incident Type*',
                     ),
                     DropdownButtonFormField<Category>(
                       value: _selectedCategory,
@@ -224,7 +292,7 @@ class _HomeViewState extends State<HomeView> {
                     ],
                     const SizedBox(height: 10),
                     const Text(
-                      'Location',
+                      'Location*',
                     ),
                     TextFormField(
                       controller: _locationController,
@@ -245,7 +313,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Description',
+                      'Description*',
                     ),
                     TextFormField(
                       controller: _descriptionController,
@@ -348,7 +416,23 @@ class _HomeViewState extends State<HomeView> {
                               _isSubmitting = true;
                             });
                             final title = _titleController.text;
-                            final name = _nameController.text;
+                            final name = await SharedPreferences.getInstance()
+                                .then((prefs) {
+                              final metadataString =
+                                  prefs.getString('user_metadata');
+                              if (metadataString != null) {
+                                final metadataMap = jsonDecode(metadataString)
+                                    as Map<String, dynamic>;
+                                final firstName =
+                                    metadataMap['first_name'] ?? '';
+                                final lastName = metadataMap['last_name'] ?? '';
+                                return '$firstName $lastName'
+                                    .trim();
+                              }
+                              return _nameController
+                                  .text; // Fallback to the name entered in the form
+                            });
+                            final userId = await getUserId() ?? '';
                             final location = _locationController.text;
                             final description = _descriptionController.text;
                             var category = _selectedCategory?.label;
@@ -363,6 +447,7 @@ class _HomeViewState extends State<HomeView> {
 
                             final reportData = {
                               'title': title,
+                              'reported_by': userId,
                               'name': name,
                               'incident_type': category,
                               'location': location,

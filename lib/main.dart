@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ireport/services/auth/supabase.dart';
@@ -10,65 +11,78 @@ import 'package:ireport/views/admin_dashboard_view.dart';
 import 'package:ireport/views/admin_home_view.dart';
 import 'package:ireport/views/admin_hotline.dart';
 import 'package:ireport/views/home.dart';
+import 'package:ireport/views/user_home_view.dart';
+import 'package:shared_preferences/shared_preferences.dart' as custom;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uni_links/uni_links.dart';
 
 import 'package:ireport/views/incident_view.dart';
 import 'package:ireport/views/login_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ireport/views/register_view.dart';
 
 void main() async {
-  
   await dotenv.load(fileName: ".env");
   try {
     await SupabaseService.initialize();
-   
   } catch (e) {
     // INSERT LOADING ERROR PAGE HERE
     print(e);
   }
-  runApp(const MyApp());
+
+  final prefs = await SharedPreferences.getInstance();
+  final userJson = prefs.getString('user_data');
+  final metadataString = prefs.getString('user_metadata');
+
+  Widget initialScreen;
+
+  if (userJson != null && metadataString != null) {
+    final Map<String, dynamic> metadataMap =
+        jsonDecode(metadataString) as Map<String, dynamic>;
+    final String role = metadataMap['role'] ?? '';
+
+    if (role == 'user') {
+      initialScreen = const UserHome();
+      print('User role detected: $role');
+    } else {
+      initialScreen = const AdminHomeView();
+       print('ADMIN HOME VIEW');
+    }
+  } else {
+    initialScreen =
+        const HomeView();
+          print('ELSE STATEMENT');
+  }
+
+  runApp(MyApp(initialScreen: initialScreen));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Widget initialScreen;
 
-  // This widget is the root of your application.
+  const MyApp({super.key, required this.initialScreen});
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-         BlocProvider(create: (context) => AuthBloc(SupabaseAuthProvider())),
+        BlocProvider(create: (context) => AuthBloc(SupabaseAuthProvider())),
         BlocProvider(create: (context) => NavigationBloc()),
       ],
       child: MaterialApp(
-        home: BlocProvider<AuthBloc>(
-        create: (context) => AuthBloc(SupabaseAuthProvider()),
-        child: const HomeView(),
-      ),
+        home: initialScreen, // Use the initial screen determined in main()
         routes: {
           '/login': (context) => const LoginView(),
           '/admin-home': (context) => const AdminHomeView(),
           '/home': (context) => const HomeView(),
           '/incident-view': (context) => const IncidentView(),
           '/admin-hotline': (context) => const AdminHotline(),
-          // Add other routes here
+          '/register': (context) => const RegisterView(),
+          '/user-home': (context) => const UserHome(),
         },
       ),
     );
   }
-  //   return MaterialApp(
-  //     title: 'Flutter Demo',
-  //     theme: ThemeData(
-  //       useMaterial3: true,
-  //     ),
-  //     home: const MyHomePage(title: ''),
-  //     routes: {
-  //       '/login': (context) => const LoginView(),
-  //       '/admin-dashboard': (context) => const AdminDashboardView(),
-  //       '/admin-home': (context) => const AdminHomeView(),
-  //       '/incident-view': (context) => const IncidentView(),
-  //     },
-  //   );
-  // }
 }
 
 class MyHomePage extends StatefulWidget {
@@ -86,6 +100,41 @@ class _MyHomePageState extends State<MyHomePage> {
     const HomeView(),
   ];
 
+  void handleIncomingLinks() {
+    uriLinkStream.listen((Uri? uri) {
+      if (uri != null && uri.scheme == 'myapp' && uri.host == 'callback') {
+        print('Email confirmed!');
+        // Use context to navigate
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>?> getUserMetadata() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user_data');
+    if (userJson != null) {
+      final Map<String, dynamic> userMap =
+          jsonDecode(userJson) as Map<String, dynamic>;
+      return userMap['userMetadata'] as Map<String, dynamic>?;
+    }
+    return null;
+  }
+
+  Future<bool> isUser() async {
+    final userMetadata = await getUserMetadata();
+
+    if (userMetadata != null) {
+      final String role = userMetadata['role'];
+
+      print('METHOD: $role');
+
+      return role == 'user';
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());
@@ -93,27 +142,45 @@ class _MyHomePageState extends State<MyHomePage> {
       listener: (context, state) {},
       builder: (BuildContext context, AuthState state) {
         if (state is AuthStateLoggedIn) {
+          final userMetadata = state.userMetadata;
+          // final isUserRole = userMetadata?['role'] == 'user';
           return Scaffold(
             body: BlocBuilder<NavigationBloc, NavigationState>(
               builder: (context, navState) {
                 return _pages[navState.selectedIndex];
               },
             ),
-            bottomNavigationBar: BottomNavigationBar(
-                currentIndex:
-                    context.read<NavigationBloc>().state.selectedIndex,
-                onTap: (index) =>
-                    context.read<NavigationBloc>().add(ChangePageEvent(index)),
-                items: const [
-                  BottomNavigationBarItem(
-                      icon: Icon(Icons.home), label: 'Home'),
-                  BottomNavigationBarItem(
-                      icon: Icon(Icons.dashboard), label: 'Dashboard'),
-                  BottomNavigationBarItem(
-                      icon: Icon(Icons.analytics), label: 'Report'),
-                ]),
+            bottomNavigationBar: FutureBuilder<bool>(
+              future: isUser(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox.shrink(); // Show nothing while loading
+                }
+                final isUserRole = snapshot.data ?? false;
+                return BottomNavigationBar(
+                  currentIndex:
+                      context.read<NavigationBloc>().state.selectedIndex,
+                  onTap: (index) => context
+                      .read<NavigationBloc>()
+                      .add(ChangePageEvent(index)),
+                  items: isUserRole
+                      ? const [
+                          BottomNavigationBarItem(
+                              icon: Icon(Icons.analytics), label: 'Report'),
+                        ]
+                      : const [
+                          BottomNavigationBarItem(
+                              icon: Icon(Icons.home), label: 'Home'),
+                          BottomNavigationBarItem(
+                              icon: Icon(Icons.dashboard), label: 'Dashboard'),
+                          BottomNavigationBarItem(
+                              icon: Icon(Icons.analytics), label: 'Report'),
+                        ],
+                );
+              },
+            ),
           );
-        }else {
+        } else {
           return const HomeView();
         }
       },

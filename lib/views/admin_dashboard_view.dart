@@ -144,8 +144,10 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                     itemCount: filteredReports.length,
                     itemBuilder: (context, index) {
                       final report = filteredReports[index];
-                        final createdAt = DateTime.parse(report['created_at']).toLocal();
-                        final formattedTime = DateFormat('yyyy-MM-dd hh:mm a').format(createdAt);
+                      final createdAt =
+                          DateTime.parse(report['created_at']).toLocal();
+                      final formattedTime =
+                          DateFormat('yyyy-MM-dd hh:mm a').format(createdAt);
 
                       return Container(
                         decoration: BoxDecoration(
@@ -183,8 +185,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                                   (report['status'] ?? 'Unknown').toUpperCase(),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color:  _getStatusColor(
-                                      report['status'] ?? 'Unknown'),
+                                    color: _getStatusColor(
+                                        report['status'] ?? 'Unknown'),
                                   ),
                                 ),
                               ],

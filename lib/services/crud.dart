@@ -118,18 +118,54 @@ class CrudService {
     }
   }
 
-  Future<String> getImageFile(String fileName) async{
+  Future<String> getImageFile(String fileName) async {
     try {
-      final response = await _client.storage.from('ireport').getPublicUrl(fileName);
+      final response =
+          await _client.storage.from('ireport').getPublicUrl(fileName);
 
       if (response == null) {
         throw Exception('Failed to download file: $response');
       }
 
       return response;
-
     } catch (e) {
       throw Exception('Exception caught in downloadFile: $e');
+    }
+  }
+
+  Future<bool> registerUser(Map<String, dynamic> userData) async {
+    try {
+      final response = await _client.auth.signUp(
+          password: userData['password'],
+          email: userData['email'],
+          phone: userData['phone'],
+          data: {
+            'first_name': userData['first_name'],
+            'last_name': userData['last_name'],
+            'role': 'user'
+          });
+
+      final Session? session = response.session;
+      final User? user = response.user;
+
+      print(user);
+    } on AuthException catch (e) {
+      if (e.message.contains('Email is already registered.')) {
+        throw Exception('Email is already registered.');
+      }
+      throw Exception('${e.message}');
+    } catch (error) {
+      throw Exception('Unexpected error: $error');
+    }
+    return true;
+  }
+
+  Future<Session?> getCurrentSession() async {
+    try {
+      final session = _client.auth.currentSession;
+      return session;
+    } catch (e) {
+      throw Exception('Failed to get current session: $e');
     }
   }
 }

@@ -9,3 +9,5 @@ class GenericAuthException implements Exception{}
 class InvalidCredentialsException implements Exception{}
 
 class RateLimitExceededException implements Exception{}
+
+class EmailNotConfirmedAuthException implements Exception{}

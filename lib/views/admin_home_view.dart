@@ -9,6 +9,7 @@ import 'package:ireport/views/admin_dashboard_view.dart';
 import 'package:ireport/views/admin_hotline.dart';
 import 'package:ireport/views/home.dart';
 import 'package:ireport/views/incident_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/bloc/auth_event.dart';
 
@@ -46,6 +47,10 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                   onSelected: (value) async {
                     switch (value) {
                       case MenuLoggedInAction.logout:
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.clear();
+
+                        // Trigger logout event
                         context.read<AuthBloc>().add(const AuthEventLogout());
 
                         Navigator.of(context).pushNamedAndRemoveUntil(
@@ -379,15 +384,18 @@ class _AdminHomeViewState extends State<AdminHomeView> {
               showUnselectedLabels: true,
               currentIndex: context.read<NavigationBloc>().state.selectedIndex,
               onTap: (index) =>
-                context.read<NavigationBloc>().add(ChangePageEvent(index)),
+                  context.read<NavigationBloc>().add(ChangePageEvent(index)),
               items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home',),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard), label: 'Dashboard'),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.analytics), label: 'Report'),
-              BottomNavigationBarItem(icon: Icon(Icons.emergency), label: 'Hotlines'),
-          
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.dashboard), label: 'Dashboard'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.analytics), label: 'Report'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.emergency), label: 'Hotlines'),
               ],
             ),
           );

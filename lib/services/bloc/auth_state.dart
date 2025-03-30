@@ -6,8 +6,11 @@ import 'package:ireport/services/auth/auth_user.dart';
 abstract class AuthState {
   final bool isLoading;
   final String? loadingText;
+  final Map<String, dynamic>? userMetadata;
   const AuthState(
-      {required this.isLoading, this.loadingText = 'Please wait a moment'});
+      {required this.isLoading,
+      this.loadingText = 'Please wait a moment',
+      this.userMetadata});
 }
 
 class AuthStateUnintialized extends AuthState {
@@ -21,7 +24,14 @@ class AuthInitial extends AuthState {
 
 class AuthStateLoggedIn extends AuthState {
   final AuthUser user;
-  const AuthStateLoggedIn({required this.user, required super.isLoading});
+  final Map<String, dynamic> userData;
+  const AuthStateLoggedIn(
+      {required this.user,
+      required super.isLoading,
+      required this.userData});
+
+  @override
+  List<Object?> get props => [userMetadata];
 }
 
 class AuthStateLoggedOut extends AuthState with EquatableMixin {
@@ -31,5 +41,5 @@ class AuthStateLoggedOut extends AuthState with EquatableMixin {
       : super(isLoading: isLoading, loadingText: loadingText);
 
   @override
-  List<Object?> get props =>  [exception, isLoading];
+  List<Object?> get props => [exception, isLoading];
 }
