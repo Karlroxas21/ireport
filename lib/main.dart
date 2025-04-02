@@ -10,6 +10,7 @@ import 'package:ireport/services/bloc/navigation_bloc.dart';
 import 'package:ireport/views/admin_dashboard_view.dart';
 import 'package:ireport/views/admin_home_view.dart';
 import 'package:ireport/views/admin_hotline.dart';
+import 'package:ireport/views/create_admin_view.dart';
 import 'package:ireport/views/email_confirmed_view.dart';
 import 'package:ireport/views/home.dart';
 import 'package:ireport/views/link_expired_view.dart';
@@ -77,6 +78,7 @@ class MyApp extends StatelessWidget {
           '/register': (context) => const RegisterView(),
           '/user-home': (context) => const UserHome(),
           '/user-incident-view': (context) => const UserIncidentView(),
+          '/create-admin-account': (context) => const CreateAdminAccount(),
         },
       ),
     );

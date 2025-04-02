@@ -5,5 +5,5 @@ enum MenuAction {
 
 enum MenuLoggedInAction{
   logout,
-  hotlines
+  createAdminAccount
 }

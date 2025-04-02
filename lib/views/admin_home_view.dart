@@ -7,6 +7,7 @@ import 'package:ireport/services/bloc/navigation_bloc.dart';
 import 'package:ireport/services/crud.dart';
 import 'package:ireport/views/admin_dashboard_view.dart';
 import 'package:ireport/views/admin_hotline.dart';
+import 'package:ireport/views/create_admin_view.dart';
 import 'package:ireport/views/home.dart';
 import 'package:ireport/views/incident_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,8 +50,7 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                       case MenuLoggedInAction.logout:
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.clear();
-
-                        // Trigger logout event
+                        
                         context.read<AuthBloc>().add(const AuthEventLogout());
 
                         Navigator.of(context).pushNamedAndRemoveUntil(
@@ -58,19 +58,21 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                           (Route<dynamic> route) => false,
                         );
                         break;
-                      case MenuLoggedInAction.hotlines:
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/admin-hotline',
-                          (Route<dynamic> route) => false,
-                        );
+                      case MenuLoggedInAction.createAdminAccount:
+                          Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CreateAdminAccount(),
+                                ),
+                              );
                         break;
                     }
                   },
                   itemBuilder: (context) {
                     return const [
                       PopupMenuItem<MenuLoggedInAction>(
-                        value: MenuLoggedInAction.hotlines,
-                        child: Text('Hotlines'),
+                        value: MenuLoggedInAction.createAdminAccount,
+                        child: Text('Create Admin Account'),
                       ),
                       PopupMenuItem<MenuLoggedInAction>(
                         value: MenuLoggedInAction.logout,

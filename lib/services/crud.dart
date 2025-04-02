@@ -209,6 +209,28 @@ class CrudService {
     return true;
   }
 
+  
+  Future<bool> registerAdmin(Map<String, dynamic> userData) async {
+    try {
+      final response = await _client.auth.signUp(
+          password: userData['password'],
+          email: userData['email']);
+
+      final Session? session = response.session;
+      final User? user = response.user;
+
+      print(user);
+    } on AuthException catch (e) {
+      if (e.message.contains('Email is already registered.')) {
+        throw Exception('Email is already registered.');
+      }
+      throw Exception('${e.message}');
+    } catch (error) {
+      throw Exception('Unexpected error: $error');
+    }
+    return true;
+  }
+
   Future<Session?> getCurrentSession() async {
     try {
       final session = _client.auth.currentSession;

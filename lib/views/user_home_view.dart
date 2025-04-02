@@ -61,21 +61,12 @@ class _UserHomeState extends State<UserHome> {
                         (Route<dynamic> route) => false,
                       );
                       break;
-
-                    case MenuLoggedInAction.hotlines:
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/admin-hotline',
-                        (Route<dynamic> route) => false,
-                      );
+                    case MenuLoggedInAction.createAdminAccount:
                       break;
                   }
                 },
                 itemBuilder: (context) {
                   return const [
-                    PopupMenuItem<MenuLoggedInAction>(
-                      value: MenuLoggedInAction.hotlines,
-                      child: Text('Hotlines'),
-                    ),
                     PopupMenuItem<MenuLoggedInAction>(
                       value: MenuLoggedInAction.logout,
                       child: Text('Log Out'),
