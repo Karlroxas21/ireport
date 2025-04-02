@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:ireport/services/auth/supabase.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase/supabase.dart';
 
 class CrudService {
@@ -11,6 +13,18 @@ class CrudService {
 
   Future<void> initialize() async {
     await SupabaseService.initialize();
+  }
+
+  Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson =
+        prefs.getString('user_data'); 
+    if (userJson != null) {
+      final Map<String, dynamic> userMap =
+          jsonDecode(userJson) as Map<String, dynamic>;
+      return userMap['id'] as String?; 
+    }
+    return null; 
   }
 
   Future<bool> insertReport(Map<String, dynamic> reportData) async {
@@ -46,6 +60,41 @@ class CrudService {
     final subscription =
         _client.from('reports').stream(primaryKey: ['id']).listen((snapshot) {
       fetchReports(); // Refetch reports on insert, update, delete
+    });
+
+    return controller.stream;
+  }
+
+  // FETCH USER REPORT BY ID
+  Stream<List<Map<String, dynamic>>> getAllReportsByUser() {
+    final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
+
+    void fetchReports() async {
+      try {
+        final userId = await getUserId();
+        if (userId == null) {
+          throw Exception('User ID not found in preferences');
+        }
+
+        final reports = await _client
+            .from('reports')
+            .select('*')
+            .eq('reported_by', userId)
+            .order('created_at', ascending: false);
+
+        controller.add(reports);
+      } catch (e) {
+        controller.addError('Failed to fetch reports: $e');
+      }
+    }
+
+    // Initial fetch
+    fetchReports();
+
+    // Listen to real-time changes
+    final subscription =
+        _client.from('reports').stream(primaryKey: ['id']).listen((snapshot) {
+      fetchReports();
     });
 
     return controller.stream;
@@ -96,7 +145,7 @@ class CrudService {
     // Listen to real-time changes
     final subscription =
         _client.from('reports').stream(primaryKey: ['id']).listen((snapshot) {
-      fetchStatuses(); // Refetch statuses on insert, update, delete
+      fetchStatuses(); 
     });
 
     return controller.stream;

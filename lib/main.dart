@@ -10,11 +10,12 @@ import 'package:ireport/services/bloc/navigation_bloc.dart';
 import 'package:ireport/views/admin_dashboard_view.dart';
 import 'package:ireport/views/admin_home_view.dart';
 import 'package:ireport/views/admin_hotline.dart';
+import 'package:ireport/views/email_confirmed_view.dart';
 import 'package:ireport/views/home.dart';
+import 'package:ireport/views/link_expired_view.dart';
 import 'package:ireport/views/user_home_view.dart';
+import 'package:ireport/views/user_incident_view.dart';
 import 'package:shared_preferences/shared_preferences.dart' as custom;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uni_links/uni_links.dart';
 
 import 'package:ireport/views/incident_view.dart';
 import 'package:ireport/views/login_view.dart';
@@ -30,7 +31,7 @@ void main() async {
     print(e);
   }
 
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = await custom.SharedPreferences.getInstance();
   final userJson = prefs.getString('user_data');
   final metadataString = prefs.getString('user_metadata');
 
@@ -43,15 +44,11 @@ void main() async {
 
     if (role == 'user') {
       initialScreen = const UserHome();
-      print('User role detected: $role');
     } else {
       initialScreen = const AdminHomeView();
-       print('ADMIN HOME VIEW');
     }
   } else {
-    initialScreen =
-        const HomeView();
-          print('ELSE STATEMENT');
+    initialScreen = const HomeView();
   }
 
   runApp(MyApp(initialScreen: initialScreen));
@@ -70,7 +67,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => NavigationBloc()),
       ],
       child: MaterialApp(
-        home: initialScreen, // Use the initial screen determined in main()
+        home: initialScreen,
         routes: {
           '/login': (context) => const LoginView(),
           '/admin-home': (context) => const AdminHomeView(),
@@ -79,6 +76,7 @@ class MyApp extends StatelessWidget {
           '/admin-hotline': (context) => const AdminHotline(),
           '/register': (context) => const RegisterView(),
           '/user-home': (context) => const UserHome(),
+          '/user-incident-view': (context) => const UserIncidentView(),
         },
       ),
     );
@@ -100,18 +98,8 @@ class _MyHomePageState extends State<MyHomePage> {
     const HomeView(),
   ];
 
-  void handleIncomingLinks() {
-    uriLinkStream.listen((Uri? uri) {
-      if (uri != null && uri.scheme == 'myapp' && uri.host == 'callback') {
-        print('Email confirmed!');
-        // Use context to navigate
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
-  }
-
   Future<Map<String, dynamic>?> getUserMetadata() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await custom.SharedPreferences.getInstance();
     final userJson = prefs.getString('user_data');
     if (userJson != null) {
       final Map<String, dynamic> userMap =
@@ -133,6 +121,11 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     return false;
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override

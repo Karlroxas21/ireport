@@ -432,7 +432,7 @@ class _HomeViewState extends State<HomeView> {
                               return _nameController
                                   .text; // Fallback to the name entered in the form
                             });
-                            final userId = await getUserId() ?? '';
+                            final userId = await getUserId() ?? null;
                             final location = _locationController.text;
                             final description = _descriptionController.text;
                             var category = _selectedCategory?.label;

@@ -163,7 +163,8 @@ class _RegisterViewState extends State<RegisterView> {
                           return 'Please enter a phone number';
                         }
                         if (!RegExp(r'^09\d{9,10}$').hasMatch(value)) {
-                          return 'Enter a valid phone number starting with 09 and containing 11 or 12 digits';
+                            return 'Enter a valid phone number starting with 09 and containing 11 or 12 digits'
+                              .replaceAllMapped(RegExp(r'.{1,40}(?:\s|$)'), (match) => '${match.group(0)}\n');
                         }
                         return null;
                       },

@@ -135,6 +135,7 @@ class _UserHomeState extends State<UserHome> {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8.0),
                                 child: Text(
+                                  // TODO: phone not fetching
                                   'Phone Number: ${userDetails['phone'] ?? ' '}',
                                   style: const TextStyle(fontSize: 18),
                                 ),
