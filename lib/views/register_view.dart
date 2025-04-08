@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ireport/services/auth/supabase.dart';
 import 'package:ireport/services/crud.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -400,7 +401,8 @@ class _RegisterViewState extends State<RegisterView> {
               Center(
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.of(context).pushNamed('/login');
+                    context.pushNamed('/login');
+                  //   Navigator.of(context).pushNamed('/login');
                   },
                   child: const Text(
                     'Already a user? Login',

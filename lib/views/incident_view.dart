@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:ireport/services/auth/supabase.dart';
 import 'package:ireport/services/crud.dart'; // Import the crud.dart file
@@ -13,8 +14,8 @@ class IncidentView extends StatefulWidget {
 class _IncidentViewState extends State<IncidentView> {
   late String status;
   late String newStatus = args['status'];
-  late final Map<String, dynamic> args =
-      ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    late final Map<String, dynamic> args = (GoRouterState.of(context).extra ?? {}) as Map<String, dynamic>;
+
   bool loading = true; // Add loading state
 
   Color _getStatusColor(String status) {

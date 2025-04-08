@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ireport/enums/menu_action.dart';
 import 'package:ireport/services/auth/supabase.dart';
 import 'package:ireport/services/bloc/auth_bloc.dart';
@@ -50,21 +51,19 @@ class _AdminHomeViewState extends State<AdminHomeView> {
                       case MenuLoggedInAction.logout:
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.clear();
-                        
+
                         context.read<AuthBloc>().add(const AuthEventLogout());
 
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/home',
-                          (Route<dynamic> route) => false,
-                        );
+                        context.go('/');
                         break;
                       case MenuLoggedInAction.createAdminAccount:
-                          Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CreateAdminAccount(),
-                                ),
-                              );
+                        context.push('/create-admin-account');
+                        // Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //         builder: (context) => const CreateAdminAccount(),
+                        //       ),
+                        //     );
                         break;
                     }
                   },

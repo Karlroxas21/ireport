@@ -80,7 +80,6 @@ class SupabaseAuthProvider implements AuthProvider {
         await prefs.setString('user_data', userJson);
         await prefs.setString('user_metadata', metadataString);
         await prefs.setString('user_id', userMap['id']);
-        print('User metadata: $metadataString');
 
         return user;
       } else {

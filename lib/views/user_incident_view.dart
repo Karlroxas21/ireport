@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class UserIncidentView extends StatefulWidget {
@@ -10,8 +11,7 @@ class UserIncidentView extends StatefulWidget {
 
 class _UserIncidentViewState extends State<UserIncidentView> {
   late String status;
-  late final Map<String, dynamic> args =
-      ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+  late final Map<String, dynamic> args = (GoRouterState.of(context).extra ?? {}) as Map<String, dynamic>;
   bool loading = true;
 
   @override

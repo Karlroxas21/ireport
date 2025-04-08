@@ -17,14 +17,13 @@ class CrudService {
 
   Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    final userJson =
-        prefs.getString('user_data'); 
+    final userJson = prefs.getString('user_data');
     if (userJson != null) {
       final Map<String, dynamic> userMap =
           jsonDecode(userJson) as Map<String, dynamic>;
-      return userMap['id'] as String?; 
+      return userMap['id'] as String?;
     }
-    return null; 
+    return null;
   }
 
   Future<bool> insertReport(Map<String, dynamic> reportData) async {
@@ -145,7 +144,7 @@ class CrudService {
     // Listen to real-time changes
     final subscription =
         _client.from('reports').stream(primaryKey: ['id']).listen((snapshot) {
-      fetchStatuses(); 
+      fetchStatuses();
     });
 
     return controller.stream;
@@ -187,17 +186,17 @@ class CrudService {
       final response = await _client.auth.signUp(
           password: userData['password'],
           email: userData['email'],
-          phone: userData['phone'],
+          emailRedirectTo: 'ireport://ireport/email-confirmed',
           data: {
             'first_name': userData['first_name'],
             'last_name': userData['last_name'],
+            'phone_number': userData['phone_number'],
             'role': 'user'
           });
 
       final Session? session = response.session;
       final User? user = response.user;
 
-      print(user);
     } on AuthException catch (e) {
       if (e.message.contains('Email is already registered.')) {
         throw Exception('Email is already registered.');
@@ -209,17 +208,14 @@ class CrudService {
     return true;
   }
 
-  
   Future<bool> registerAdmin(Map<String, dynamic> userData) async {
     try {
-      final response = await _client.auth.signUp(
-          password: userData['password'],
-          email: userData['email']);
+      final response = await _client.auth
+          .signUp(password: userData['password'], email: userData['email'], emailRedirectTo: 'ireport://ireport/email-confirmed',);
 
       final Session? session = response.session;
       final User? user = response.user;
 
-      print(user);
     } on AuthException catch (e) {
       if (e.message.contains('Email is already registered.')) {
         throw Exception('Email is already registered.');

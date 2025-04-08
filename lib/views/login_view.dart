@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ireport/services/auth/auth_exceptions.dart';
 import 'package:ireport/services/auth/supabase_auth_provider.dart';
 import 'package:ireport/services/bloc/auth_bloc.dart';
@@ -200,17 +201,9 @@ class __LoginViewState extends State<LoginView> {
                                                 metadataMap['role'] ?? '';
 
                                             if (role == 'user') {
-                                              Navigator.of(context)
-                                                  .pushNamedAndRemoveUntil(
-                                                '/user-home',
-                                                (Route<dynamic> route) => false,
-                                              );
+                                              context.go('/user-home');
                                             } else {
-                                              Navigator.of(context)
-                                                  .pushNamedAndRemoveUntil(
-                                                '/admin-home',
-                                                (Route<dynamic> route) => false,
-                                              );
+                                              context.go('/admin-home');
                                             }
                                           }
 
@@ -272,8 +265,9 @@ class __LoginViewState extends State<LoginView> {
                         Center(
                           child: GestureDetector(
                             onTap: () {
-                              Navigator.of(context)
-                                  .pushNamed('/forgot-password');
+                                context.pushNamed('/forgot-password');
+                            //   Navigator.of(context)
+                            //       .pushNamed('/forgot-password');
                             },
                             child: const Text(
                               'Forgot password?',
@@ -293,6 +287,5 @@ class __LoginViewState extends State<LoginView> {
         ),
       ),
     );
-  
   }
 }

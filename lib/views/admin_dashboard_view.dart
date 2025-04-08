@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ireport/enums/incident_categories.dart';
 import 'package:ireport/enums/menu_action.dart';
 import 'package:ireport/services/auth/supabase.dart';
@@ -193,10 +194,9 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                             ),
                           ),
                           onTap: () {
-                            Navigator.pushNamed(
-                              context,
+                            context.pushNamed(
                               '/incident-view',
-                              arguments: report,
+                                extra: report,
                             );
                           },
                         ),

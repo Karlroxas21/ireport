@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ireport/enums/incident_categories.dart';
 import 'package:ireport/enums/menu_action.dart';
 import 'package:ireport/services/auth/supabase.dart';
@@ -109,20 +110,11 @@ class _HomeViewState extends State<HomeView> {
                         onSelected: (value) async {
                           switch (value) {
                             case MenuAction.login:
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginView(),
-                                ),
-                              );
+                              context.push('/login');
                               break;
                             case MenuAction.register:
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RegisterView(),
-                                ),
-                              );
+                              context.push('/register');
+
                               break;
                           }
                         },
@@ -212,7 +204,6 @@ class _HomeViewState extends State<HomeView> {
                               .shrink(); // Show nothing while loading
                         }
                         if (snapshot.hasData && snapshot.data != null) {
-                          print('user_metadata: ${snapshot.data}');
                           return const SizedBox
                               .shrink(); // Hide the field if metadataString has a value
                         }
@@ -426,8 +417,7 @@ class _HomeViewState extends State<HomeView> {
                                 final firstName =
                                     metadataMap['first_name'] ?? '';
                                 final lastName = metadataMap['last_name'] ?? '';
-                                return '$firstName $lastName'
-                                    .trim();
+                                return '$firstName $lastName'.trim();
                               }
                               return _nameController
                                   .text; // Fallback to the name entered in the form

@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class EmailConfirmed extends StatefulWidget {
   const EmailConfirmed({super.key});
@@ -34,7 +35,7 @@ class _EmailConfirmedState extends State<EmailConfirmed> {
                 ),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    Navigator.pushNamed(context, '/login');
+                    context.go('/login');
                   },
               ),
             ),

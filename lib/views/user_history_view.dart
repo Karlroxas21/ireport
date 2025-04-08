@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:ireport/services/auth/supabase.dart';
 import 'package:ireport/services/crud.dart';
@@ -149,10 +150,9 @@ class _UserHistoryState extends State<UserHistory> {
                             ),
                           ),
                           onTap: () {
-                            Navigator.pushNamed(
-                              context,
+                               context.pushNamed(
                               '/user-incident-view',
-                              arguments: report,
+                              extra: report,
                             );
                           },
                         ),

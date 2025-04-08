@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class LinkExpireView extends StatefulWidget {
   const LinkExpireView({super.key});
@@ -34,7 +35,8 @@ class _LinkExpireViewState extends State<LinkExpireView> {
                 ),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    Navigator.pushNamed(context, '/login');
+                    context.pushNamed('/login');
+                    // Navigator.pushNamed(context, '/login');
                   },
               ),
             ),
