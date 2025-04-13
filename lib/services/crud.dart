@@ -235,4 +235,24 @@ class CrudService {
       throw Exception('Failed to get current session: $e');
     }
   }
+
+  Future<bool> resetPasswordForEmail(String email) async {
+    try {
+      final response = await _client.auth.resetPasswordForEmail(email, redirectTo: 'ireport://ireport/forgot-password');
+       
+      return true;
+    } catch (e) {
+      throw Exception('Exception caught in resetPasswordForEmail: $e');
+    }
+  }
+
+  Future<void> updatePassword(String password) async {
+    try {
+      final response = await _client.auth.updateUser(
+        UserAttributes(password: password),
+      );
+    } catch (e) {
+      throw Exception('Exception caught in updatePassword: $e');
+    }
+  }
 }

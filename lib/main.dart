@@ -17,11 +17,10 @@ import 'package:ireport/views/create_admin_view.dart';
 import 'package:ireport/views/email_confirmed_view.dart';
 import 'package:ireport/views/forgot_password_view.dart';
 import 'package:ireport/views/home.dart';
-import 'package:ireport/views/link_expired_view.dart';
+import 'package:ireport/views/send_forgot_password.dart';
 import 'package:ireport/views/user_home_view.dart';
 import 'package:ireport/views/user_incident_view.dart';
 import 'package:shared_preferences/shared_preferences.dart' as custom;
-
 import 'package:ireport/views/incident_view.dart';
 import 'package:ireport/views/login_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -129,9 +128,9 @@ class _MyAppState extends State<MyApp> {
             name: '/email-confirmed',
             builder: (context, state) => const EmailConfirmed()),
         GoRoute(
-            path: '/link-expired',
-            name: '/link-expired',
-            builder: (context, state) => const LinkExpireView()),
+            path: '/send-forgot-password',
+            name: '/send-forgot-password',
+            builder: (context, state) => const ForgotPasswordScreen()),
         GoRoute(
             path: '/forgot-password',
             name: '/forgot-password',
@@ -163,7 +162,59 @@ class _MyAppState extends State<MyApp> {
     if (uri.path == '/email-confirmed') {
       _router.pushNamed('/email-confirmed');
     } else if (uri.path == '/forgot-password') {
-      _router.pushNamed('/forgot-password');
+      _handlePasswordResetDeepLink(uri);
+    }
+  }
+
+  Future<void> _handlePasswordResetDeepLink(Uri uri) async {
+    try {
+      print('Password reset deep link received: $uri');
+
+      String? token;
+      final supabaseService = SupabaseService();
+
+      // Check fragment first (after #)
+      if (uri.fragment.isNotEmpty) {
+        final fragmentParams = Uri.splitQueryString(uri.fragment);
+        token = fragmentParams['token'] ?? fragmentParams['access_token'];
+      }
+
+      // If not in fragment, check query params
+      if (token == null && uri.queryParameters.containsKey('token')) {
+        token = uri.queryParameters['token'];
+      }
+
+      print('Token found: ${token != null}');
+
+      if (token != null) {
+        // PKCE links, we need to exchange the token
+        print('Exchanging PKCE token for session...');
+        try {
+          final response =
+              await supabaseService.client.auth.getSessionFromUrl(uri);
+          print('Session established from URL: ${response.session != null}');
+
+          _router.pushNamed('/forgot-password');
+          return;
+        } catch (e) {
+          print('Error exchanging token: $e');
+        }
+      }
+
+      // Fall back to checking if we already have a session
+      final session = supabaseService.client.auth.currentSession;
+      print('Current session: ${session != null}');
+
+      if (session != null) {
+        _router.pushNamed('/forgot-password');
+      } else {
+        print(
+            'No valid session established. Redirecting to reset password request screen');
+        _router.pushNamed('/send-forgot-password');
+      }
+    } catch (e) {
+      print('Error handling password reset deep link: $e');
+      _router.pushNamed('/send-forgot-password');
     }
   }
 

@@ -19,4 +19,14 @@ class SupabaseService {
       anonKey: anonKey,
     );
   }
+
+   Future<AuthSessionUrlResponse?> getSessionFromUrl(Uri uri) async {
+  try {
+    final response = await client.auth.getSessionFromUrl(uri);
+    return response;
+  } catch (e) {
+    print('Error getting session from URL: $e');
+    return null;
+  }
+}
 }
