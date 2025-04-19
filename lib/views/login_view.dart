@@ -265,7 +265,7 @@ class __LoginViewState extends State<LoginView> {
                         Center(
                           child: GestureDetector(
                             onTap: () {
-                                context.pushNamed('/forgot-password');
+                                context.pushNamed('/send-forgot-password');
                             //   Navigator.of(context)
                             //       .pushNamed('/forgot-password');
                             },

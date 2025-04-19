@@ -25,6 +25,7 @@ import 'package:ireport/views/incident_view.dart';
 import 'package:ireport/views/login_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ireport/views/register_view.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase_flutter;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -169,36 +170,81 @@ class _MyAppState extends State<MyApp> {
   Future<void> _handlePasswordResetDeepLink(Uri uri) async {
     try {
       print('Password reset deep link received: $uri');
+      print('URI structure: ${uri.toString()}');
 
-      String? token;
+      //   Path 1: Handle direct Supabase Verify URL
+      if (uri.host.contains('supabase.co') && uri.path.contains('/verify')) {
+        print(
+            'Detected direct Supabase verification URL - this is unusual in production');
+
+        final redirectTo = uri.queryParameters['redirect_to'];
+        if (redirectTo != null) {
+          print('Found redirect_to parameter: $redirectTo');
+          _router.pushNamed('/forgot-password');
+        }
+
+        // Handle token directly
+        final token = uri.queryParameters['token'];
+        if (token != null) {
+          print('Found token in direct URL: ${token.substring(0, 10)}...');
+
+          final success = await _processToken(token, uri);
+          if (success) {
+            _router.pushNamed('/forgot-password');
+            return;
+          }
+        }
+
+        _router.pushNamed('/send-forgot-password');
+        return;
+      }
       final supabaseService = SupabaseService();
+
+      //   Path #2: Handle the redirected deep link (normal flow)
+      String? token;
+      String? refreshToken;
+      String? type;
 
       // Check fragment first (after #)
       if (uri.fragment.isNotEmpty) {
         final fragmentParams = Uri.splitQueryString(uri.fragment);
         token = fragmentParams['token'] ?? fragmentParams['access_token'];
+        refreshToken = fragmentParams['refresh_token'];
+        type = fragmentParams['type'];
+
+        print('Found in fragment - access token: ${token != null}, '
+            'refresh token: ${refreshToken != null}, type: $type');
       }
 
       // If not in fragment, check query params
       if (token == null && uri.queryParameters.containsKey('token')) {
         token = uri.queryParameters['token'];
+        refreshToken = uri.queryParameters['refresh_token'];
+        type = uri.queryParameters['type'];
+
+        print('Found in query params - access token: ${token != null}, '
+            'refresh token: ${refreshToken != null}, type: $type');
       }
 
-      print('Token found: ${token != null}');
-
-      if (token != null) {
+      if (token != null && type == 'recovery') {
+        print('Valid recovery information found, trying to establish session');
         // PKCE links, we need to exchange the token
         print('Exchanging PKCE token for session...');
         try {
           final response =
               await supabaseService.client.auth.getSessionFromUrl(uri);
-          print('Session established from URL: ${response.session != null}');
-
-          _router.pushNamed('/forgot-password');
-          return;
+          if (response.session != null) {
+            print('Session established from URL: ${response.session != null}');
+            _router.pushNamed('/forgot-password');
+            return;
+          } else {
+            print('Failed to establish session from URL');
+          }
         } catch (e) {
           print('Error exchanging token: $e');
         }
+      } else {
+        print('Incomplete authentication data in deep link');
       }
 
       // Fall back to checking if we already have a session
@@ -215,6 +261,27 @@ class _MyAppState extends State<MyApp> {
     } catch (e) {
       print('Error handling password reset deep link: $e');
       _router.pushNamed('/send-forgot-password');
+    }
+  }
+
+  Future<bool> _processToken(String token, Uri originalUri) async {
+    try {
+      if (token.startsWith('pkce_')) {
+        // For PKCE tokens, we need to use getSessionFromUrl with the original URL
+        final response =
+            await SupabaseService().client.auth.getSessionFromUrl(originalUri);
+        return response.session != null;
+      } else {
+        // For other token types, try direct verification
+        await SupabaseService().client.auth.verifyOTP(
+          type: supabase_flutter.OtpType.recovery,
+          token: token,
+        );
+        return SupabaseService().client.auth.currentSession != null;
+      }
+    } catch (e) {
+      print('Error processing token: $e');
+      return false;
     }
   }
 
