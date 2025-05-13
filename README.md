@@ -69,13 +69,13 @@ To extract report, go to supabase.
 ![System Architecture](./docs/system_architecture.jpg)
 
 ## Entity Relationship Diagram
-![Entity Relationship Diagram](./docs/erd.jpg)
+![Entity Relationship Diagram](./docs/erd_updated.png)
 
 ## Flowcharts
 ### User
 ![User Flowchart](./docs/user_flowchart.jpg)
 ### Admin
-![Admin Flowchart](./docs/admin_flowchart.jpg)
+![Admin Flowchart](./docs/admin_flow_chart_updated.png)
 
 ## Use case Diagram
-![Use case Diagram](./docs/use_case_diagram.jpg)
+![Use case Diagram](./docs/use_case_diagram.png)
