@@ -14,6 +14,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ireport/views/login_view.dart';
 import 'package:ireport/views/register_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -32,10 +34,14 @@ class _HomeViewState extends State<HomeView> {
   final TextEditingController _otherCategoryController =
       TextEditingController();
   File? _selectedImage;
+  String? _imageValidationError;
   bool _isSubmitting = false;
 
   late final CrudService _crudService = CrudService(SupabaseService().client);
   final _formKey = GlobalKey<FormState>();
+
+  String _currentStatus = 'Press the button to get location';
+  bool _isLocationFieldEnabled = true;
 
   @override
   void initState() {
@@ -65,6 +71,10 @@ class _HomeViewState extends State<HomeView> {
         _selectedImage = File(pickedFile.path);
       });
     }
+
+    if (pickedFile == null) {
+      _imageValidationError = 'Please attach an image';
+    }
   }
 
   Future<String?> getUserId() async {
@@ -77,6 +87,102 @@ class _HomeViewState extends State<HomeView> {
       return userMap['id'] as String?; // Access the 'id' field
     }
     return null; // Return null if userJson is not found
+  }
+
+  Future<Position?> getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('location service are disabled');
+      const SnackBar(content: Text('Location service are disabled'));
+                                
+      await Geolocator.openLocationSettings();
+      return null;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print('Location permissions are denied');
+        const SnackBar(content: Text('Location permissions are denied'));
+        return null;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print('Location permissions are permanently denied, we cannot request permissions.');
+      const SnackBar(content: Text('Location permissions are permanently denied, we cannot request permissions.'));
+      return null;
+    }
+
+    return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+  }
+
+  Future<String?> getAddressFromCoordinates(
+      double latitude, double longitude) async {
+    try {
+      setState(() {
+        _currentStatus = 'Getting address from coordinates...';
+      });
+      // Return a list of placemark objects
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(latitude, longitude);
+
+      if (placemarks.isNotEmpty) {
+        // Take the first placemark, which is usually the most relevant
+        Placemark place = placemarks.first;
+
+        // Construct a readable address
+        String address = [
+          place.street,
+          place.subLocality, // Barangay
+          place.locality, // City
+          place.administrativeArea, // Province/State
+          place.country,
+          place.postalCode,
+        ]
+            .where((element) => element != null && element.isNotEmpty)
+            .join(', ');
+
+        return address;
+      } else {
+        return 'No address found for these coordinates';
+      }
+    } catch (error) {
+      print("Error during reverse geocoding: $error");
+      return 'Failed to get address.';
+    }
+  }
+
+  Future<void> _onGetLocationButtonPressed() async {
+    setState(() {
+        _isLocationFieldEnabled = false;
+        _currentStatus = 'Fetching location...';
+    });
+    final position = await getCurrentLocation();
+
+    if(position != null) {
+        final address = await getAddressFromCoordinates(position.latitude, position.longitude);
+
+        if (address != null) {
+            _locationController.text = address;
+            setState(() {
+                _isLocationFieldEnabled = false;
+                _currentStatus = 'Location and address retrieved';
+            });
+        }else {
+            _locationController.text = 'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
+            setState(() {
+                _currentStatus = 'Could not get human-readable address. Raw coordinates set.';
+            });
+
+        }
+    
+    }
   }
 
   @override
@@ -211,7 +317,7 @@ class _HomeViewState extends State<HomeView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Name(Optional)',
+                              'Name*',
                             ),
                             TextFormField(
                               controller: _nameController,
@@ -223,6 +329,12 @@ class _HomeViewState extends State<HomeView> {
                                       color: Colors.grey, width: 1),
                                 ),
                               ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a name';
+                                }
+                                return null;
+                              },
                             ),
                           ],
                         );
@@ -287,6 +399,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     TextFormField(
                       controller: _locationController,
+                      enabled: _isLocationFieldEnabled,
                       decoration: InputDecoration(
                         hintText: "Enter the exact location here",
                         border: OutlineInputBorder(
@@ -302,6 +415,23 @@ class _HomeViewState extends State<HomeView> {
                         return null;
                       },
                     ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                        icon: const Icon(Icons.my_location),
+                        onPressed: _onGetLocationButtonPressed,
+                        label: const Text('Get My Current Location'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        )),
+                    const SizedBox(height: 20),
+                    Text(_currentStatus,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey[600])),
                     const SizedBox(height: 16),
                     const Text(
                       'Description*',
@@ -327,7 +457,7 @@ class _HomeViewState extends State<HomeView> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    const Text('Attach Picture(Optional)'),
+                    const Text('Attach Picture*'),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -336,11 +466,6 @@ class _HomeViewState extends State<HomeView> {
                             ElevatedButton(
                               onPressed: () => _pickImage(ImageSource.camera),
                               child: const Text('Camera'),
-                            ),
-                            const SizedBox(width: 10),
-                            ElevatedButton(
-                              onPressed: () => _pickImage(ImageSource.gallery),
-                              child: const Text('Gallery'),
                             ),
                           ],
                         ),
@@ -384,6 +509,18 @@ class _HomeViewState extends State<HomeView> {
                             child: const Text('Remove Image'),
                           ),
                         ],
+                        if (_imageValidationError != null) 
+
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: 8.0,
+                                left: 12.0), 
+                            child: Text(
+                              _imageValidationError!,
+                              style: const TextStyle(
+                                  color: Colors.red, fontSize: 12),
+                            ),
+                          ),
                       ],
                     )
                   ],
@@ -403,6 +540,13 @@ class _HomeViewState extends State<HomeView> {
                       ? null
                       : () async {
                           if (_formKey.currentState?.validate() ?? false) {
+                            if (_selectedImage == null) {
+                              setState(() {
+                                _imageValidationError =
+                                    'Please attach an image.';
+                              });
+                              return; // Stop if image is missing and required
+                            }
                             setState(() {
                               _isSubmitting = true;
                             });
@@ -426,6 +570,7 @@ class _HomeViewState extends State<HomeView> {
                             final location = _locationController.text;
                             final description = _descriptionController.text;
                             var category = _selectedCategory?.label;
+                            final position = await getCurrentLocation();
 
                             String? imageUrl;
 
@@ -441,6 +586,8 @@ class _HomeViewState extends State<HomeView> {
                               'name': name,
                               'incident_type': category,
                               'location': location,
+                              'longitude': position!.longitude,
+                              'latitude': position!.latitude,
                               'description': description,
                               'status': DEFAULT_STATUS,
                             };
@@ -478,6 +625,7 @@ class _HomeViewState extends State<HomeView> {
                                 setState(() {
                                   _selectedCategory = null;
                                   _selectedImage = null;
+                                  _imageValidationError = null;
                                 });
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -497,11 +645,10 @@ class _HomeViewState extends State<HomeView> {
                               });
                             }
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Special Characters are not allowed')),
-                            );
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text("Form not valid."),
+                            ));
                           }
                         },
                   child: _isSubmitting

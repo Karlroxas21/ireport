@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class UserIncidentView extends StatefulWidget {
   const UserIncidentView({super.key});
@@ -11,12 +12,40 @@ class UserIncidentView extends StatefulWidget {
 
 class _UserIncidentViewState extends State<UserIncidentView> {
   late String status;
-  late final Map<String, dynamic> args = (GoRouterState.of(context).extra ?? {}) as Map<String, dynamic>;
+
+  bool _isMapInitialized = false;
+
   bool loading = true;
+
+  late GoogleMapController mapsController;
+  final Set<Marker> _markers = {};
+
+  late LatLng _initialMapCenter;
+  late double _Latitude;
+  late double _Longitude;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_isMapInitialized) {
+      final Map<String, dynamic> args =
+          (GoRouterState.of(context).extra ?? {}) as Map<String, dynamic>;
+
+      _Latitude = (args['latitude'] as double?) ?? 0.0;
+      _Longitude = (args['longitude'] as double?) ?? 0.0;
+
+      _initialMapCenter = LatLng(_Latitude, _Longitude);
+
+      _addMarkers();
+
+      _isMapInitialized = true; // Set flag to true to prevent re-initialization
+    }
   }
 
   @override
@@ -54,8 +83,28 @@ class _UserIncidentViewState extends State<UserIncidentView> {
     }
   }
 
+  void _addMarkers() {
+    setState(() {
+      _markers.clear();
+
+      _markers.add(
+        Marker(
+          markerId: MarkerId(
+              _Latitude.toString() + _Longitude.toString()), // Unique marker ID
+          position: LatLng(_Latitude, _Longitude),
+          infoWindow: const InfoWindow(
+            title: 'Exact Location',
+            snippet: 'GPS Location',
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic> args =
+        (GoRouterState.of(context).extra ?? {}) as Map<String, dynamic>;
     return Scaffold(
       appBar: AppBar(
         title: Text('Back'),
@@ -116,7 +165,30 @@ class _UserIncidentViewState extends State<UserIncidentView> {
                     'Date: ${args['created_at'] != null ? DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(args['created_at']).toLocal()) : 'Unknown'}'),
                 const SizedBox(height: 8),
                 Text('Location: ${args['location'] ?? 'Unknown'}'),
+                Text(
+                    'Coordinates: Latitude ${args['latitude'] ?? 'Unknown'}, Longitude ${args['longitude'] ?? 'Unknown'}'),
                 const SizedBox(height: 16),
+                SizedBox(
+                  height: 300,
+                  child: GoogleMap(
+                    onMapCreated: (GoogleMapController controller) {
+                      mapsController = controller;
+                      // Animate to the location after map is created
+                      mapsController.animateCamera(
+                        CameraUpdate.newLatLngZoom(_initialMapCenter, 15.0),
+                      );
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target:
+                          _initialMapCenter, // initial camera to the extracted location
+                      zoom: 15.0, // Adjust zoom level as needed
+                    ),
+                    markers:
+                        _markers, // Display markers from the _locations list
+                    myLocationButtonEnabled: false,
+                    myLocationEnabled: false,
+                  ), 
+                ),
                 Divider(),
                 const SizedBox(height: 16),
                 const Text(

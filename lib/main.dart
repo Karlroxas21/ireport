@@ -341,6 +341,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return false;
   }
 
+
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());
