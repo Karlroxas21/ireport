@@ -161,12 +161,31 @@ class _UserIncidentViewState extends State<UserIncidentView> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                const Text(
+                  'Date:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 Text(
-                    'Date: ${args['created_at'] != null ? DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(args['created_at']).toLocal()) : 'Unknown'}'),
+                    '${args['created_at'] != null ? DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(args['created_at']).toLocal()) : 'Unknown'}'),
                 const SizedBox(height: 8),
-                Text('Location: ${args['location'] ?? 'Unknown'}'),
+                const Text(
+                  'Location:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text('${args['location'] ?? 'Unknown'}'),
+                const SizedBox(height: 8),
+                const Text(
+                  'Coordinates:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 Text(
-                    'Coordinates: Latitude ${args['latitude'] ?? 'Unknown'}, Longitude ${args['longitude'] ?? 'Unknown'}'),
+                    'Latitude ${args['latitude'] ?? 'Unknown'}, Longitude ${args['longitude'] ?? 'Unknown'}'),
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 300,
@@ -187,7 +206,7 @@ class _UserIncidentViewState extends State<UserIncidentView> {
                         _markers, // Display markers from the _locations list
                     myLocationButtonEnabled: false,
                     myLocationEnabled: false,
-                  ), 
+                  ),
                 ),
                 Divider(),
                 const SizedBox(height: 16),
@@ -221,17 +240,8 @@ class _UserIncidentViewState extends State<UserIncidentView> {
                 ),
                 Text('${args['status'] ?? 'Unknown'}'.toUpperCase()),
                 const SizedBox(height: 8),
-                const SizedBox(height: 16),
                 const Text(
-                  'Status:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Image',
+                  'Image:',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

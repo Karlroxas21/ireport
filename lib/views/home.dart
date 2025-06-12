@@ -96,8 +96,10 @@ class _HomeViewState extends State<HomeView> {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       print('location service are disabled');
-      const SnackBar(content: Text('Location service are disabled'));
-                                
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location service are disabled')),
+      );
+
       await Geolocator.openLocationSettings();
       return null;
     }
@@ -107,14 +109,21 @@ class _HomeViewState extends State<HomeView> {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         print('Location permissions are denied');
-        const SnackBar(content: Text('Location permissions are denied'));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location permissions are denied')),
+        );
         return null;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      print('Location permissions are permanently denied, we cannot request permissions.');
-      const SnackBar(content: Text('Location permissions are permanently denied, we cannot request permissions.'));
+      print(
+          'Location permissions are permanently denied, we cannot request permissions.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Location permissions are permanently denied, enable it to proceed')),
+      );
       return null;
     }
 
@@ -144,9 +153,7 @@ class _HomeViewState extends State<HomeView> {
           place.administrativeArea, // Province/State
           place.country,
           place.postalCode,
-        ]
-            .where((element) => element != null && element.isNotEmpty)
-            .join(', ');
+        ].where((element) => element != null && element.isNotEmpty).join(', ');
 
         return address;
       } else {
@@ -160,28 +167,28 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _onGetLocationButtonPressed() async {
     setState(() {
-        _isLocationFieldEnabled = false;
-        _currentStatus = 'Fetching location...';
+      _isLocationFieldEnabled = false;
     });
     final position = await getCurrentLocation();
 
-    if(position != null) {
-        final address = await getAddressFromCoordinates(position.latitude, position.longitude);
+    if (position != null) {
+      final address = await getAddressFromCoordinates(
+          position.latitude, position.longitude);
 
-        if (address != null) {
-            _locationController.text = address;
-            setState(() {
-                _isLocationFieldEnabled = false;
-                _currentStatus = 'Location and address retrieved';
-            });
-        }else {
-            _locationController.text = 'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
-            setState(() {
-                _currentStatus = 'Could not get human-readable address. Raw coordinates set.';
-            });
-
-        }
-    
+      if (address != null) {
+        _locationController.text = address;
+        setState(() {
+          _isLocationFieldEnabled = false;
+          _currentStatus = 'Location and address retrieved';
+        });
+      } else {
+        _locationController.text =
+            'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
+        setState(() {
+          _currentStatus =
+              'Could not get human-readable address. Raw coordinates set.';
+        });
+      }
     }
   }
 
@@ -421,7 +428,8 @@ class _HomeViewState extends State<HomeView> {
                         onPressed: _onGetLocationButtonPressed,
                         label: const Text('Get My Current Location'),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 15, horizontal: 10),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -509,12 +517,10 @@ class _HomeViewState extends State<HomeView> {
                             child: const Text('Remove Image'),
                           ),
                         ],
-                        if (_imageValidationError != null) 
-
+                        if (_imageValidationError != null)
                           Padding(
-                            padding: const EdgeInsets.only(
-                                top: 8.0,
-                                left: 12.0), 
+                            padding:
+                                const EdgeInsets.only(top: 8.0, left: 12.0),
                             child: Text(
                               _imageValidationError!,
                               style: const TextStyle(
@@ -613,6 +619,10 @@ class _HomeViewState extends State<HomeView> {
                               final result =
                                   await _crudService.insertReport(reportData);
                               if (result) {
+                                setState(() {
+                                  _currentStatus =
+                                      'Press the button to get location';
+                                });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content: Text(
